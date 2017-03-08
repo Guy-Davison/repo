@@ -1,0 +1,197 @@
+<script language="php"> //	add_rebates
+// includes
+include("../conn.php");
+//checks cookies to make sure they are logged in 
+if(!isset($_COOKIE['ID_my_admin2'])) 
+{ 
+	header("Location: admin_login.php"); 
+} 
+
+
+
+function DLookup($fld, $tab, $whr)
+{
+	$q = "Select $fld from $tab where $whr";
+	$rst = mysql_query($q);	
+	if ($rowDl = mysql_fetch_object($rst)) 
+		return $rowDl->$fld;
+	else
+		return NULL;
+}
+
+
+</script>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><!-- InstanceBegin template="/Templates/Admin_template.dwt.php" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>Global Mountain - Admin</title>
+<script language="JavaScript" src="../gen_validatorv2.js" type="text/javascript"></script>
+<!-- InstanceEndEditable --><!-- InstanceBeginEditable name="head" -->
+<!-- head section -->
+<!-- InstanceEndEditable -->
+<link href="../default.css" rel="stylesheet" type="text/css" />
+<!-- InstanceParam name="id" type="text" value="content" -->
+</head>
+<body>
+<div id="wrapper">
+  <div id="header">
+    <h1><a href="#">Global Mountain</a></h1>
+    <!--<p><a href="http://www.freecsstemplates.org/">By J.K. Rowling</a></p>-->
+  </div>
+  <!-- end header --> 
+  <div id="menu">
+    <h2>Main Menu</h2>
+    <ul>
+      <li class="active"><a href="index.php">Home</a></li>
+     <!-- <li><a href="../signup.php">Sign up</a></li>
+      <li><a href="../login.php">Login</a></li>
+      <li><a href="../shopping.php">Go Shopping</a></li>-->
+      <!--<li><a href="../forums/phpBB2/">Forums</a></li>-->
+      <li><!--<a href="../index.php?page=Forums">Forums</a>--></li>
+      <li><!--<a href="../index.php?page=Support">Support</a>--></li>
+      <li><!--<a href="../index.php?page=about">About</a>--></li>
+      <li><!--<a href="../contact.php">Contact</a>--></li>
+    </ul>
+  </div>
+  <!-- end menu -->
+  <div id="page">
+        <div id="content">
+        <!-- InstanceBeginEditable name="content" -->
+
+
+
+
+
+<?php 
+// checks if there are any rebates to run
+$rebate_count=0;
+$result_rebates = mysql_query("SELECT seq, mem_id, trans_id, store_name, trans_amt, rebateOut, trans_dt FROM rebates WHERE calculated<>'1'"); //where trans_id not in mem_rebates
+if ($row_rebates = mysql_fetch_array($result_rebates)) {
+	do {
+		$seq=$row_rebates["seq"];
+		$shopper_id=$row_rebates["mem_id"];
+		$trans_id=$row_rebates["trans_id"];
+		$store_name=$row_rebates["store_name"];
+		$trans_amt=$row_rebates["trans_amt"];
+		$rebateOut=$row_rebates["rebateOut"];
+		$rebateOut=number_format($rebateOut, 2, '.', '');
+		$rebateBase_amt=$rebateOut*.7;
+		$rebateBase_amt=number_format($rebateBase_amt, 2, '.', '');
+		$trans_dt=$row_rebates["trans_dt"];
+		//Calculate rebates based on values listed in com_structure if rebateOut is 30 cents or more
+		if($rebateOut>.29){
+			$result_cs = mysql_query("SELECT * FROM com_structure");
+			if ($row2 = mysql_fetch_array($result_cs)) {
+				$mem_percentage=$row2["mem_percentage"];
+				$mem_percentage=number_format($mem_percentage, 2, '.', '');
+				$rebate_amt=$rebateBase_amt*$mem_percentage;
+				$level1pp=$row2["level1"];
+				$rebate1_amt=$rebateBase_amt*$level1pp;
+				$level2pp=$row2["level2"];
+				$rebate2_amt=$rebateBase_amt*$level2pp;
+				$level3pp=$row2["level3"];
+				$rebate3_amt=$rebateBase_amt*$level3pp;
+				$level4pp=$row2["level4"];
+				$rebate4_amt=$rebateBase_amt*$level4pp;
+				$level5pp=$row2["level5"];
+				$rebate5_amt=$rebateBase_amt*$level5pp;
+				$level6pp=$row2["level6"];
+				$rebate6_amt=$rebateBase_amt*$level6pp;
+				$level7pp=$row2["level7"];
+				$rebate7_amt=$rebateBase_amt*$level7pp;
+				$pocket_change=0;
+			} // End if
+		}else{
+			$rebate_amt=$rebateBase_amt;
+			$pocket_change=1;
+		}
+		
+		
+		//insert rebate for shopper
+		If (!empty($shopper_id)) { 
+			$insert1 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, pocket_change, trans_dt)
+			VALUES ('1','".$shopper_id."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate_amt."','".$pocket_change."','".$trans_dt."')";
+			echo("<br>".$insert1." ".$rebateOut);
+			$insert_rebate1 = mysql_query($insert1)or die(mysql_error());
+			echo("<br>1st query RAN<br>");
+		}
+		//lookup sponsors 7 levels deep and insert rebates if not pocket change
+	if ($pocket_change<>1){
+		If (!empty($shopper_id)) { $level1spid = DLookup("sponsor_id", "users", "id='".$shopper_id."'"); 
+			$insert2 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level1spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate1_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate2 = mysql_query($insert2)or die(mysql_error());
+		}
+		If (!empty($level1spid)) { $level2spid = DLookup("sponsor_id", "users", "id='".$level1spid."'"); 
+			$insert3 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level2spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate2_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate3 = mysql_query($insert3)or die(mysql_error());
+		}
+		If (!empty($level2spid)) { $level3spid = DLookup("sponsor_id", "users", "id='".$level2spid."'"); 
+			$insert4 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level3spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate3_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate4 = mysql_query($insert4)or die(mysql_error());
+		}
+		If (!empty($level3spid)) { $level4spid = DLookup("sponsor_id", "users", "id='".$level3spid."'"); 
+			$insert5 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level4spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate4_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate5 = mysql_query($insert5)or die(mysql_error());
+		}
+		If (!empty($level4spid)) { $level5spid = DLookup("sponsor_id", "users", "id='".$level4spid."'"); 
+			$insert6 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level5spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate5_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate6 = mysql_query($insert6)or die(mysql_error());
+		}
+		If (!empty($level5spid)) { $level6spid = DLookup("sponsor_id", "users", "id='".$level5spid."'"); 
+			$insert7 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level6spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate6_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate7 = mysql_query($insert7)or die(mysql_error());
+		}
+		If (!empty($level6spid)) { $level7spid = DLookup("sponsor_id", "users", "id='".$level6spid."'"); 
+			$insert8 = "INSERT INTO member_rebates (pending, id, recd_from, trans_id, trans_amt, store_name, rebate_amt, trans_dt)
+			VALUES ('1','".$level7spid."','".$shopper_id."','".$trans_id."','".$trans_amt."','".$store_name."','".$rebate7_amt."','".$trans_dt."')";
+			//echo($insert);
+			$insert_rebate8 = mysql_query($insert8)or die(mysql_error());
+		}
+	} 	//end if pocket change
+
+
+		//mark as calculated
+		$update = "UPDATE rebates SET calculated=1 WHERE seq='".$seq."'";
+		$rebate_count++;
+		mysql_query($update);
+	} while($row_rebates = mysql_fetch_array($result_rebates));
+}	// end rebates check
+echo("rebate count ".$rebate_count);
+
+?>
+
+
+
+
+
+
+          <!-- InstanceEndEditable -->
+    </div><!-- end content -->
+   
+    <!-- end sidebar -->
+    <div style="clear: both;">&nbsp;</div>
+  </div>
+  <!-- end page -->
+  <div id="footer">
+    <p id="legal">Copyright &copy; 2015 The Island. All Rights Reserved. Designed by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a>.</p>
+   <!-- <p id="links"><a href="../index.php?page=privacy">Privacy Policy</a> | <a href="../index.php?page=terms">Terms of Use</a></p> -->
+  </div>
+  <!-- end footer -->
+</div>
+<!-- end wrapper -->
+</body>
+<!-- InstanceEnd --></html>
