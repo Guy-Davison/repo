@@ -1,0 +1,540 @@
+<script language="php"> 
+// includes
+include("conn.php");				//Includes the database connection strings
+include("functions.php");
+$storeseq=$_REQUEST['storeseq'];
+$last_seq=$_REQUEST['last_seq'];
+if ($last_seq=="") {
+	$last_seq=9999999;
+}
+function mysql_evaluate($query, $default_value="undefined") {
+    $result = mysql_query($query);
+    if (mysql_num_rows($result)==0)
+        return $default_value;
+    else
+        return mysql_result($result,0);
+}
+
+$category_id=$_REQUEST['categoryid'];
+</script>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><!-- InstanceBegin template="/Templates/Globalmountain_template.dwt.php" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>Global Mountain -<?php echo $title; ?></title>
+<!-- InstanceEndEditable -->
+<!-- InstanceBeginEditable name="head" -->
+<!-- head section -->
+<script type="text/JavaScript">
+function HideContent(d) {
+	if(d.length < 1) { return; }
+	document.getElementById(d).style.display = "none";
+}
+function ShowContent(d) {
+	if(d.length < 1) { return; }
+	document.getElementById(d).style.display = "block";
+}
+function ReverseContentDisplay(d) {
+	if(d.length < 1) { return; }
+	if(document.getElementById(d).style.display == "none") { document.getElementById(d).style.display = "block"; }
+	else { document.getElementById(d).style.display = "none"; }
+}
+//-->
+</script>
+<!-- InstanceEndEditable -->
+<script type="text/javascript" src="scripts/jquery-1.2.6.min.js"></script>
+<script type="text/javascript" src="scripts/thickbox.js"></script>
+<script src="SpryAssets/SpryMenuBar.js" type="text/javascript"></script>
+<link href="testing/gmi_2.css" rel="stylesheet" type="text/css" />
+<!--[if IE 5]>
+<style type="text/css"> 
+/* place css box model fixes for IE 5* in this conditional comment */
+.thrColFixHdr #sidebar1 { width: 180px; }
+.thrColFixHdr #sidebar2 { width: 190px; }
+</style>
+<![endif]--><!--[if IE]>
+<style type="text/css"> 
+/* place css fixes for all versions of IE in this conditional comment */
+.thrColFixHdr #sidebar2, .thrColFixHdr #sidebar1 { padding-top: 30px; }
+.thrColFixHdr #mainContent { zoom: 1; }
+/* the above proprietary zoom property gives IE the hasLayout it needs to avoid several bugs */
+</style>
+<![endif]-->
+<link href="SpryAssets/SpryMenuBarVertical.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+<!--
+.style4 {
+	font-size: 80%;
+	color: #0066ff;
+}
+.style5 {font-size:100%; font:"Times New Roman", Times, serif; color: #FF6600;}
+-->
+</style>
+<!-- ajax search field autocomplete-->
+<link rel="stylesheet" href="jquery-ui.css">
+  <script src="jquery-1.10.2.js"></script>
+  <script src="jquery-ui.js"></script>
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script>
+  $(function() {
+    var availableTags = [
+	   <? 
+    // Build SQL Query  
+$currentDateStamp = date("Y")."-".date("m")."-".date("d"); 
+$query = "select * from stores where active_date <= '".$currentDateStamp."' AND deactivate != 1  ORDER BY store_name"; // EDIT HERE and specify your table and field names for the SQL query
+$result = mysql_query($query) or die($query);
+// now you can display the results returned
+
+  while ($row= mysql_fetch_array($result)) {
+	    //$a[] = "Zzx";
+	    $store_url = $row["store_url"];
+		$store_name = $row["store_name"];
+		$a[] = $store_name;
+		?>"<?=$store_name?>",<?
+	  }
+//*********************************************END SQL SEARCH CODE*************************************************
+    ?> 
+      ""
+    ];
+	
+    //$( "#searchfield" ).autocomplete({
+    //  source: availableTags
+    //});
+	
+	//input is named searchfield
+	
+	//Test code
+	$("#searchfield").autocomplete({
+	source: availableTags,
+	minLength: 2,
+	select: function(event, ui) { 
+		$("#searchfield1").val(ui.item.value);
+		//var id3 = "clicked";
+		//$("#q2").val(id3);
+		
+		$("#searchform1").submit(); }
+	});
+	//END test code
+	
+  });
+  </script>
+<!-- end ajax search auto complete-->
+</head>
+
+<body class="thrColFixHdr">
+
+<div id="container">
+<? 
+function DLookup1($fld, $tab, $whr)
+{
+	$q = "Select $fld from $tab where $whr";
+	//echo $q;
+	$rst = mysql_query($q);	
+	if ($row = mysql_fetch_object($rst)) 
+		return $row->$fld;
+	else
+		return NULL;
+}
+
+	$id = $_COOKIE['user_id'];
+	$fname = $_COOKIE['fname'];
+	$lname = $_COOKIE['lname'];
+	//$recd_from_idx = DLookup1("id", "user_idxref", "user_id='".$id."' ");
+	$recd_from_idx = $_COOKIE['member_id'];
+	// idx is now from the member id field of the users table
+	$id_info = "ID: ".$recd_from_idx;
+	$lyr_height="75px";
+	$activated = DLookup1("site", "users", "id='".$id."' ");
+	if($activated=="") {	$lyr_height="63px";	}
+	?>
+    <div id="mem_info" 
+		style="position:absolute; top:10px; left:750px; width:250px; height:<?=$lyr_height?>; display:none;
+        border-style: solid; 
+		background-color: white; 
+		padding: 5px;
+        z-index:1"><!-- <font color="#333333">Welcome <?=$fname?> <?=$lname?> <?=$id_info?>
+        <font size="1"><br />You are logged in =)</font> -->
+        <?php /*?><?
+        if($activated=="") {	
+		?><br /><font size="1"><br /><a href="update_profile.php">Click here to activate your site - <?=$activated?></a></font><?
+		}
+		?><?php */?><!--
+        <br />
+        <a href="den/index.php">Click here to go to your den</a> -->
+    </div>
+
+  <div id="header"> <a href="index.php"><img src="images/GM_dotcom_header_960x133.jpg" width="959" height="133" border="0" /></a><br />
+    <table width="100%">
+    <tr>
+    <td align="left"><font color="#333333">
+<? //checks cookies to see if they are logged in and displays info panel
+if(isset($_COOKIE['user_id'])) 
+{ 
+?>
+<script type="text/javascript">
+<!-- document.getElementById("mem_info").style.display = "block"; -->
+</script>
+<? //end check cookies to see if they are logged in 
+}
+?>
+</font>
+</td>
+<td align="center">
+   <?php  if(isset($_COOKIE['ID_my_site'])) { // Members area ?>
+  <a href="index.php">Home</a>&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;&nbsp;&nbsp;<a href="den/index.php">Den</a>
+   <?php } else {		// non logged in area ?>
+   <a href="index.php">Home</a>
+   <? } ?>  
+  </td>   
+  <td align="center"><div class="ui-widget">
+  <form id="searchform1" method="get" action="search2.php"> 
+  <input id="searchfield1" type="hidden" name="q" value="" />  </form>
+  
+  <form id="searchform" method="get" action="search.php">  
+            <input id="searchfield" type="text" name="q" value="" />
+            <input id="searchsubmit" type="submit" value="Store &amp; Category Search" />
+            </form></div></td>
+            <?php  if(isset($_COOKIE['ID_my_site'])) { // Members area ?>
+          <td align="right"><a href="suite/about-us/">About Us</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="http://www.globalmountain.info/index1.php">Investor Relations</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="99_sign.php">Get Your Free Membership</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="logout.php">Log Out</a>
+          </td>
+          <?php } else {		// non logged in area ?>
+          <td align="right"><a href="suite/about-us/">About Us</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="http://www.globalmountain.info/index1.php">Investor Relations</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="99_sign.php">Get Your Free Membership</a>&nbsp;&nbsp;-&nbsp;&nbsp;<a href="login.php">Member Log In</a>
+          </td>
+          <?php } ?>
+      </tr>
+    </table>
+  <!-- end #header --></div>
+  <div id="left">
+  <div id="sidebar1">
+  <a href="shopping.php" style="color:#0066FF"><img src="images/AllStores.png" border="0" /></a><br />
+  <font style="color:#CCCCCC">-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;-&nbsp;</font>
+   <a href="images.php"><h3 class="style4"><font color="#0066ff" style="text-decoration:underline">Quick Look</font></h3></a>
+   <a href="specials.php"><h3 class="style4"><font color="#0066ff" style="text-decoration:underline">Top Specials</font></h3></a>
+   <a href="free_shipping.php"><h3 class="style4"><font color="#0066ff" style="text-decoration:underline">Free Shipping Stores</font></h3></a>
+   <!--<a href="gift_cards.php"><h3 class="style4"><font color="#0066ff" style="text-decoration:underline">Gift Card Stores</font></h3></a>-->
+   <h3 class="style4">
+   <a target="_blank" href="track.php?storeseq=1202"><h3 class="style4"><font color="#0066ff" style="text-decoration:underline">Grocery Coupons</font>
+   </h3></a>
+    <h3 class="style4"><font style="text-decoration:underline" color="#000000">Shopping Categories</font></h3>
+    <ul id="MenuBar1" class="MenuBarVertical">
+<? 
+ // ***************** Generate list of categories from database ***************
+date_default_timezone_set('America/New_York');//Default time zone on new servers are UTC
+$currentDateStamp = date("Y")."-".date("m")."-".date("d"); 
+$result2 = mysql_query ("SELECT * FROM Categories ORDER BY category asc");	
+if ($row_ctgy = mysql_fetch_array($result2)) {
+do {
+		$categories_id=$row_ctgy["category_id"];
+		$categories_name=$row_ctgy["Category"];
+		$storeCatSeq = DLookup1("seq", "stores", "active_date <= '".$currentDateStamp."' AND deactivate != 1 and category_id='".$categories_id."'");
+		If ($storeCatSeq > 0 ) {
+?>
+<li><a class="MenuBarItemSubmenu" href="http://www.globalmountain.com/shopping.php?categoryid=<?=$categories_id?>"><?=$categories_name?></a></li>
+<? 		}
+   } while($row_ctgy = mysql_fetch_array($result2)); 
+}
+		?>
+    </ul>
+  <!-- end #sidebar1 -->
+  </div>
+  <?php include ('left_ad.php')?>
+  <?php include('gas.php') ?>
+  <div id="leftRSS">
+  <a href="http://www.internetlivestats.com/internet-users/" target="_blank" class="style4"><h3 align="center"><font style="text-decoration:underline">Internet World Population:</font></h3></a>
+
+  <div align="center"><span class="style5"><strong>Over 3 Billion and Growing!</strong></span> </div>
+  </div>
+  </div> 
+  <div id="sidebar2">
+  <div id="NewStores">
+    <table bgcolor="#CCCCCC" width="100%"><tr>
+      <td align="center"><font color="#333333" size="+1">This Week's Featured Stores:</font></td></tr>
+    <tr><td align="left" bgcolor="#FFFFFF"><div align="center"><font size="1" color="#333333">Earn <strong>DOUBLE Global Cash!</strong> - PLUS - Each store also has a <b>Top Special!</b></font> 
+      <?php
+// **************************** Generate list of new stores from database **********************************
+
+//$result = mysql_query ("SELECT * FROM stores  WHERE active_date = '".$currentDateStamp."' AND deactivate != 1  ORDER BY active_date desc");		
+$result=mysql_query ("SELECT * FROM stores WHERE feature_start <= '".$currentDateStamp."' AND feature_exp >= '".$currentDateStamp."' AND deactivate != 1   ORDER BY store_name asc");
+//echo $result;
+if ($row = mysql_fetch_array($result)) { 
+	do {
+			$seq=$row["seq"];
+	$store=$row["store_name"];
+	$store_id=$row["store_id"];
+	$store_url=$row["store_url"];
+	$store_logo=$row["store_logo"];
+	$rebate=$row["rebateOut"];
+	$rebateOut2=$row["rebateOut2"];
+	$rebateOut2_description=$row["rebateOut2_description"];
+	$flatrate=$row["FlatRateRebate"];
+	$variablerate=$row["VariableRateRebate"];
+	$rebate_description=$row["rebate_description"];
+	
+	if ($flatrate==1) {
+	//	$rebate='$'.$rebateOut;
+	} else {
+	//	$rebate=$rebateOut.'%';
+	}
+	
+	if (!$rebate_description>'') {
+		$rebate_description=$rebate.' of sale';
+	} 
+	
+	if ($variablerate==1) {
+	//	$rebate_description=$rebateOut.'% of sale or '.$rebateOut2_description;
+	} 
+	
+	if ($variablerate==1) {	
+	//	$rebate=$rebateOut.'% - '.$rebateOut2;   
+	} 
+		?> 
+    </div>
+      <p align="center"><a href="store_info.php?storeseq=<?=$seq;?>"><img border="0" width="140" alt="Go shopping at this store" src="upload_files/<?=$store_logo;?>"/><br /><span class="newsTitle"><b><?=$store;?></b></span></a><br />
+		Global Cash Payout: <?=$rebate;?> (x2) </p>
+		<?
+	} while($row = mysql_fetch_array($result));  
+  // End While   echo("end while"); 
+  //End featured store code
+}
+?></td></tr>
+<tr><td align="center">
+<a href="stores_by_date.php"><font color="#0066ff" size="+1">See Recently Added Stores</font></a></td></tr></table>
+    <!--end #NewStores--></div>
+    <?php  if(isset($_COOKIE['ID_my_site'])) { // Members area ?>
+    <div id="memberInfo">
+        <!--<li id="news">
+          <h2>Video</h2>
+          <ul>
+            <li><a href="">training video</a></li>
+          </ul>
+        </li>-->
+        <!--<li id="submenu">
+          <h2>Links</h2>
+          <ul>-->
+            <!--<a href="rebates.php">Global Cash</a></a><br />
+            <a href="update_profile.php">Update Profile</a><br />
+            <a href="members_referred.php">Members Referred</a><br />
+            <a href="training.php">Training Files</a><br />
+            <a href="index.php?page=members manual">Members Manual</a><br />
+            <a href="index.php?page=fast start">Fast Start</a><br />-->
+            
+            <font color="#333333">Welcome <?=$fname?> <?=$lname?> <?=$id_info?>
+            <font size="1"><br />You are logged in =)</font>
+            <br />
+            <a href="den/index.php">Click here to go to your den</a>
+            <br /><br /><!--<font size="1">Click on a category to the left or use the store search below to start earning your cash</font>-->
+   
+            
+            <a href="logout.php">Log Out</a>
+          <!--</ul>
+        </li>-->
+        </div>
+	<?php } else {		// non logged in area ?>
+    <div id="memberInfo">
+    <a href="login.php">Member Log In</a>
+     </div>
+        <?php } ?>
+        <?php include('right_ad.php') ?>
+        <!--
+        <div id="news">
+<span class="h1"><b>News &amp; Updates</b></span>
+    <?php
+// **************************** Generate list of news pages from database **********************************
+$result2 = mysql_query ("SELECT * FROM news ORDER BY page desc limit 4");	
+if ($row2 = mysql_fetch_array($result2)) {
+	do {
+		$npage=$row2["page"];
+		$ntitle=$row2["title"];
+		$np1=$row2["p1"];
+		?>
+		 <p><span class="newsTitle"><b><?=$ntitle?></b></span><br />
+		<a href="news.php?page=<?=$npage?>"><?=$np1?></a></p>
+		<?
+	} while($row2 = mysql_fetch_array($result2));
+  // End While   echo("end while");
+  ?>
+  <p align="right"><a href="newsarchive.php" style="text-decoration:none"><font size="1">News Archive</font></a></p>
+  <?
+}
+?>
+</div>  <!-- end news div --> 
+  
+  
+  <div id="commission">
+  <table width="100%" border="0"><tr><td align="center"><a href='http://www.globalmountain.com/track.php?storeseq=286' target="_blank"><img src="http://www.lduhtrp.net/image-2744640-10710423" width="125" height="125" alt="Restaurant.com Weekly Promo Offer 125 X 125" border="0"/></a></td>
+    </tr></table>
+    </div>
+  </div>
+  <div id="mainContent">
+  <!-- InstanceBeginEditable name="mainContent" -->
+
+  <?php
+		$currentDateStamp = date("Y")."-".date("m")."-".date("d"); 
+	?>
+        <!-- Stores added between  and  -->
+        <?
+		$sql_si="SELECT * FROM stores WHERE active_date <= '".$currentDateStamp."' AND category_id=".$category_id." AND deactivate != 1 ORDER BY store_name asc LIMIT 50";
+	$result_si = mysql_query ($sql_si);	
+	//echo $sql;
+	if ($row_si = mysql_fetch_array($result_si)) {
+		do {
+			$store_id=$row_si["store_id"];
+			$store_name=$row_si["store_name"];
+			$coupons_si=$row_si["coupons"];
+			$coupon_exp_si=$row_si["coupon_exp"];
+			//$coupon_exp_si=date("F jS Y", strtotime($coupon_exp_si));
+			$coupon2_si=$row_si["coupon2"];
+			$coupon2_exp_si=$row_si["coupon2_exp"];
+			$coupon2_exp_display_si=date("F jS Y", strtotime($coupon2_exp_si));
+			$coupon3_si=$row_si["coupon3"];
+			$coupon3_exp_si=$row_si["coupon3_exp"];
+			$coupon3_exp_display_si=date("F jS Y", strtotime($coupon3_exp_si));
+			$shipping_deals_si=$row_si["shipping_deals"];
+			$shipping_exp_si=$row_si["shipping_exp"];
+			$coupon_exp_display_si=date("F jS Y", strtotime($coupon_exp_si));
+			$shipping_exp_display_si=date("F jS Y", strtotime($shipping_exp_si));
+			//$coupons_si = DLookup1("coupons", "stores", "coupon_exp >= '".$currentDateStamp."' AND seq='".$seq_si."'");
+ 			//$shipping_deals_si = DLookup1("shipping_deals", "stores", "shipping_exp >= '".$currentDateStamp."' AND seq='".$seq_si."'");
+			$title=$store_name;
+			$store_url=$row_si["store_url"];
+			$store_description=$row_si["store_description"];
+			$store_description = str_replace("\n", "<br>", "$store_description"); // This works
+			$store_logo=$row_si["store_logo"];
+			$storeseq=$row_si["seq"];
+			$rebateOut=$row_si["rebateOut"];
+			$rebateOut2=$row_si["rebateOut2"];
+			$rebateOut2_description=$row_si["rebateOut2_description"];
+			$flatrate=$row_si["FlatRateRebate"];
+			$variablerate=$row_si["VariableRateRebate"];
+			$rebate_description_si=$row_si["rebate_description"];
+	
+			if (!$rebate_description_si>'') { $rebate_description_si=$rebate.' of sale'; } 
+			$exists="1";
+			$last_seq=$row_si["seq"];
+		 	$remaining_stores_count = mysql_evaluate("SELECT COUNT(*) FROM stores  WHERE active_date <= '".$currentDateStamp."' AND deactivate != 1 AND seq < ".$last_seq."  ORDER BY seq desc LIMIT 15");
+		?>
+  <p>
+  <table width="100%">
+    <tr>
+      <td align="left"><? If ($store_logo<>"") { ?><div style="height:auto"><a target="_blank" href="track.php?storeseq=<?=$storeseq?>"><img border="0" width="140" alt="Go shopping at this store" src="upload_files/<?=$store_logo?>" /></a></div><? } ?></td>
+    </tr>
+    <!--<tr>
+      <td align="right"><a target="_blank" href="track.php?storeseq=<?=$storeseq;?>"><img src="images/go_shopping.png" border="0" alt="Go shopping at this store" /></a></td>
+    </tr>-->
+  </table>
+  </p>
+  <h1 class="title"><span><a target="_blank" href="track.php?storeseq=<?=$storeseq?>"><?php echo $title ?></a></span></h1>
+  <b>Global Cash Payout:</b><font color="#333333">
+  <?=$rebate_description_si?>
+  <font size="1"><br />
+  (Not including tax and shipping)</font></font><br />
+  <font size="1">Shopper earns 50% of commission shown and the other 50% is paid out to 7 Lucky People</font>
+  <!-- This is where store description used to be  -->
+  <a name="deals" href=""></a>
+  <p>
+    <? if ($coupons_si<>"") {  $special_text="1"; 
+		$id = $_COOKIE['user_id'];
+		$member_id = $_COOKIE['member_id'];
+		//now this append member id function will detect the link type and attach member tracking code
+		$coupons_si = AppendMemberID($coupons_si, $member_id, $id, $store_id);
+		
+    if ($coupon_exp_si >= $currentDateStamp) { ?> 
+    <h2>Specials:</h2>
+     <?=$coupons_si;?>
+<p><span style="float:right"><font size="1">Expires: <?=$coupon_exp_display_si?></font></span></p>
+ <?	  	} //end coupon expired
+	 } // end coupon exists?>
+     
+     <? if ($coupon2_si<>"") { 
+		$id = $_COOKIE['user_id'];
+		$member_id = $_COOKIE['member_id'];
+		//now this append member id function will detect the link type and attach member tracking code
+		$coupon2_si = AppendMemberID($coupon2_si, $member_id, $id, $store_id);
+		
+    if ($coupon2_exp_si >= $currentDateStamp) {
+		if($special_text!="1") { $special_text="1";
+		  ?>
+          <p><h2>Specials:</h2><? }?> 
+     <?=$coupon2_si;?>
+<p><span style="float:right"><font size="1">Expires: <?=$coupon2_exp_display_si?></font></span></p>
+ <?	  	} //end coupon expired
+	 } // end coupon exists?>
+     
+     <? if ($coupon3_si<>"") { 
+		$id = $_COOKIE['user_id'];
+		$member_id = $_COOKIE['member_id'];
+		//now this append member id function will detect the link type and attach member tracking code
+		$coupon3_si = AppendMemberID($coupon3_si, $member_id, $id, $store_id);
+		
+    if ($coupon3_exp_si >= $currentDateStamp) { 
+	if($special_text!="1") { $special_text="1";
+		  ?>
+          <p><h2>Specials:</h2><? }?>
+     <?=$coupon3_si;?>
+<p><span style="float:right"><font size="1">Expires: <?=$coupon3_exp_display_si?></font></span></p>
+ <?	  	} //end coupon expired
+	 } // end coupon exists?>
+     
+  </p>
+  <? If ($shipping_deals_si<>"") {
+  if ($shipping_exp_si >= $currentDateStamp) { 
+		$id = $_COOKIE['user_id'];
+		$member_id = $_COOKIE['member_id'];
+		$shipping_deals_si = AppendMemberID($shipping_deals_si, $member_id, $id, $store_id);
+		?>
+  <h2>Shipping Deals:</h2>
+  <?=$shipping_deals_si;?>
+   <p><span style="float:right"><font size="1">Expires: <?=$shipping_exp_display_si?></font></span></p>
+   <?  } //end  shipping expired
+    } // end shipping deal exists?>
+  <p><!--<a target="_blank" href="track.php?storeseq=<?=$storeseq;?>">Go shopping at this store</a>--></p>
+ 
+  
+  <p><em><?php echo $store_description ?></em></p>
+   <hr />
+  <?php 
+	} while($row_si = mysql_fetch_array($result_si));
+}
+			   ?>
+               <p>
+               <font color="#333333"><em><a href="javascript:javascript:history.go(-1)">Previous Page</a></em></font>
+               <?php 
+			   if ($remaining_stores_count > 0) {
+			   		if ($remaining_stores_count < 15) { $numStores=$remaining_stores_count;	}
+					else { $numStores="15"; }
+			   ?>
+               <!--<span style="float:right"><font color="#333333"><em><a href="stores_by_date.php?last_seq=<?=$last_seq;?>">Next <?=$numStores;?> Stores</a></em></font></span> -->
+			  <?php } ?></p>
+  
+  <!-- end boxed -->
+  <!-- InstanceEndEditable -->
+    <script type="text/javascript">
+(function(d,s,id){var z=d.createElement(s);z.type="text/javascript";z.id=id;z.async=true;z.src="//static.zotabox.com/1/5/1544531fca4be395044c3829ce9cab29/widgets.js";var sz=d.getElementsByTagName(s)[0];sz.parentNode.insertBefore(z,sz)}(document,"script","zb-embed-code"));
+</script>
+    <!-- end #mainContent --></div>
+  <!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats --><br class="clearfloat" />
+  <?php include('bottom_banners.php') ?>
+  <div id="footer">
+
+  <font style="font-size:11px"><a href="index.php">Home</a> | <a href="suite/about-us/">About Us</a> | <a href="http://print.coupons.com/alink.asp?go=13879dn2410" target="_blank">Printable Coupons</a> | <a href="contact.php">Contact Us</a> | <!--<a href="first99.php">Register</a> | <a href="login.php">Log In</a></font><br />--><a href="99_sign.php">Join Now</a></font>
+
+    <br />
+    <font style="font-size:10px">Copyright &copy; 2016 Global Mountain, Inc.</font> <font style="font-size:12px"></font><br /><font style="font-size:10px"><a href="privacy.php">Privacy Policy</a> | <a href="terms.php">Terms of Use</a> | <a href="http://www.globalmountain.info/index1.php">Investor Relations</a> | <a href="http://www.globalmountain.com/press">Press</a></font></p>
+  <!-- end #footer --></div>
+<!-- end #container --></div>
+<script type="text/javascript">
+<!--
+var MenuBar1 = new Spry.Widget.MenuBar("MenuBar1", {imgRight:"../SpryAssets/SpryMenuBarRightHover.gif"});
+//-->
+</script>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5485015-1");
+pageTracker._trackPageview();
+</script>
+</body>
+<!-- InstanceEnd --></html>
