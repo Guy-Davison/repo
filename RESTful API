@@ -1,0 +1,118 @@
+<?php
+
+function ConnectToCJ() 
+{
+    global $sort_order, $sort_by;
+    //
+    // Build REST URI for product search. Refer to documentation for more request parameters.
+
+    $URI = 'https://product-search.api.cj.com/v2/product-search?'.
+        'website-id=XXXXXXXX'.   // USE YOUR OWN.
+        '&low-price=1'.
+        '&records-per-page=25'.
+        '&sort-order='. $sort_order .
+        '&sort-by='. $sort_by .
+        '&keywords='. rawurlencode($_GET['keywords']);
+
+    $context = stream_context_create(
+    array(
+    'http' => array(
+        'method' => 'GET',
+        'header' => 'Authorization: ' . 'XXXXXXXXXXXXXXXXX'
+        )
+    ));
+
+
+    $response = new SimpleXMLElement(file_get_contents($URI, false, $context));
+	echo("test".$response);
+    return $response;
+}
+
+// A separate function to parse data.
+function FormatCJResponse($data) 
+{
+    global $sort_order;
+
+    $ProductList = '<table border="0" cellspacing="2" cellpadding="2" style="width:800px; margin: auto 0px">'.
+            '<tr style="font-weight:bold">'.
+            '<td><a href="?keywords='. rawurlencode($_GET['keywords']) .'&sort-by=name&sort-order='. SetOrder('name') .'>Product Name</a></td>'.
+            '<td>Advertiser Name</td>'.
+            '<td><a href="?keywords='. rawurlencode($_GET['keywords']) .'&sort-by=price&sort-order='. SetOrder('price') .'>Price</a></td>'.
+            '<td>Description</td>'.
+            '<td>Image</td>'.
+            '</tr>';
+
+    $attributes = $data->products->attributes();
+    if ($attributes->{'total-matched'} == '0')
+        $ProductList .= '<tr><td colspan="5">No products found ...</td></tr>';
+
+    foreach ($data->products[0] as $product) 
+    {
+        // Sanitize data.
+        $price = number_format((float)$product->price, 2, '.', ' ');
+
+        //$image = '<img src="ImageHandler.php?fileName='. 
+		$image = '<img src="'. 
+                $product->{'image-url'} .'">';
+
+        // Add to list.
+        $ProductList .= '<tr><td colspan="5"> </td></tr>'.
+        '<tr>'.
+        '<td valign="top">'. $product->name .'</td>'.
+        '<td valign="top">'. $product->{'advertiser-name'} .'</td>'.
+        '<td valign="top">'. $price .' '. $product->currency .'</td>'.
+        '<td valign="top">'. $product->description .'</td>'.
+        '<td valign="top">'. $image .'</td>'.
+        '</tr>';
+    }
+
+    $ProductList .= '</table>';
+    return $ProductList;
+}
+
+// Sorts out individual sorting.
+function SetOrder($param)
+{
+    global $sort_by, $sort_order;
+
+    if ($sort_by == $param && $sort_order == 'asc') {
+        $order = 'desc" title="Sort by descending order"';
+    } else {
+        $order = 'asc" title="Sort by ascending order"';
+    }
+
+    return $order;
+}
+
+if (isset($_GET['keywords'])) {
+    if ($_GET['keywords'] != '') {
+
+        // Sort order.
+        if (!isset($_GET['sort-order'])) {
+            $sort_order = 'asc';
+        } else {
+            switch ($_GET['sort-order']) {
+            case 'asc':
+                $sort_order = 'asc';
+                break;
+            case 'desc':
+                $sort_order = 'desc';
+                break;
+            default:
+                $sort_order = 'asc';
+            }
+        }
+
+        // Sort by
+        if (!isset($_GET['sort-by']))
+            $sort_by = 'name';
+        else
+            $sort_by = $_GET['sort-by'];
+
+        // Connect to CJ and get formatted results.
+        $ProductList = FormatCJResponse(ConnectToCJ());
+    }
+}
+?>
+
+<form action="" method="get"> <input type="text" name="keywords"> <input type="submit" value="Find it on Commission Junction!">
