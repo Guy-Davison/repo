@@ -169,7 +169,7 @@ function DLookup1($fld, $tab, $whr)
     <tr>
     <td align="left"><font color="#333333">
 <? //checks cookies to see if they are logged in and displays info panel
-if(isset($_COOKIE['user_id'])) 
+if(isset($_COOKIE['user_XXXX'])) 
 { 
 ?>
 <script type="text/javascript">
@@ -181,7 +181,7 @@ if(isset($_COOKIE['user_id']))
 </font>
 </td>
 <td align="center">
-   <?php  if(isset($_COOKIE['ID_my_site'])) { // Members area ?>
+   <?php  if(isset($_COOKIE['ID_XXXXXXX'])) { // Members area ?>
   <a href="index.php">Home</a>&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;&nbsp;&nbsp;<a href="den/index.php">Den</a>
    <?php } else {		// non logged in area ?>
    <a href="index.php">Home</a>
@@ -301,7 +301,7 @@ if ($row = mysql_fetch_array($result)) {
 <tr><td align="center">
 <a href="stores_by_date.php"><font color="#0066ff" size="+1">See Recently Added Stores</font></a></td></tr></table>
     <!--end #NewStores--></div>
-    <?php  if(isset($_COOKIE['ID_my_site'])) { // Members area ?>
+    <?php  if(isset($_COOKIE['ID_XXXXX'])) { // Members area ?>
     <div id="memberInfo">
         <!--<li id="news">
           <h2>Video</h2>
@@ -434,8 +434,8 @@ if ($row2 = mysql_fetch_array($result2)) {
   <a name="deals" href=""></a>
   <p>
     <? if ($coupons_si<>"") {  $special_text="1"; 
-		$id = $_COOKIE['user_id'];
-		$member_id = $_COOKIE['member_id'];
+		$id = $_COOKIE['useXXXX'];
+		$member_id = $_COOKIE['membXXX'];
 		//now this append member id function will detect the link type and attach member tracking code
 		$coupons_si = AppendMemberID($coupons_si, $member_id, $id, $store_id);
 		
@@ -447,8 +447,8 @@ if ($row2 = mysql_fetch_array($result2)) {
 	 } // end coupon exists?>
      
      <? if ($coupon2_si<>"") { 
-		$id = $_COOKIE['user_id'];
-		$member_id = $_COOKIE['member_id'];
+		$id = $_COOKIE['usXXXX'];
+		$member_id = $_COOKIE['memXXXX'];
 		//now this append member id function will detect the link type and attach member tracking code
 		$coupon2_si = AppendMemberID($coupon2_si, $member_id, $id, $store_id);
 		
@@ -462,8 +462,8 @@ if ($row2 = mysql_fetch_array($result2)) {
 	 } // end coupon exists?>
      
      <? if ($coupon3_si<>"") { 
-		$id = $_COOKIE['user_id'];
-		$member_id = $_COOKIE['member_id'];
+		$id = $_COOKIE['useXXXX'];
+		$member_id = $_COOKIE['memXXXX'];
 		//now this append member id function will detect the link type and attach member tracking code
 		$coupon3_si = AppendMemberID($coupon3_si, $member_id, $id, $store_id);
 		
@@ -479,8 +479,8 @@ if ($row2 = mysql_fetch_array($result2)) {
   </p>
   <? If ($shipping_deals_si<>"") {
   if ($shipping_exp_si >= $currentDateStamp) { 
-		$id = $_COOKIE['user_id'];
-		$member_id = $_COOKIE['member_id'];
+		$id = $_COOKIE['useXXXX'];
+		$member_id = $_COOKIE['membXXXX'];
 		$shipping_deals_si = AppendMemberID($shipping_deals_si, $member_id, $id, $store_id);
 		?>
   <h2>Shipping Deals:</h2>
